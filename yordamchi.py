@@ -69,6 +69,6 @@ def javob_berish(message):
         
         bot.reply_to(message, ai_answer)
     except Exception as e:
-        bot.reply_to(message, f"Miyada xatolik: {str(e)}")
+        bot.reply_to(message, f"Miyada ozgina xatolik: {str(e)}")
 
 bot.polling(none_stop=True)
