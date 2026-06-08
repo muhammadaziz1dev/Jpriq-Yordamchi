@@ -1,44 +1,74 @@
 import os
 import telebot
 from google import genai
-from dotenv import load_dotenv  # .env faylini o'qish uchun kutubxona
+from dotenv import load_dotenv
+from pymongo import MongoClient
+from threading import Thread
+import http.server
+import socketserver
 
-# 1. .env fayli ichidagi o'zgaruvchilarni tizimga yuklash
+# 1. Sozlamalarni yuklash
 load_dotenv()
 
-# 2. Kalitlarni operatsion tizim xotirasidan o'qib olish
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-MY_CHAT_ID = int(os.getenv("MY_CHAT_ID"))  # ID raqam bo'lgani uchun int() ga o'giramiz
+MY_CHAT_ID = int(os.getenv("MY_CHAT_ID"))
 GEMINI_KEY = os.getenv("GEMINI_KEY")
+MONGO_URI = os.getenv("MONGO_URI")
 
-# 3. Yangi AI mijozini va Botni yaratish
+# 2. MongoDB ulanishi
+db_client = MongoClient(MONGO_URI)
+db = db_client["jpriq_yordamchi_db"]
+history_collection = db["chat_logs"]
+
+# 3. AI va Botni yaratish
 client = genai.Client(api_key=GEMINI_KEY)
 bot = telebot.TeleBot(BOT_TOKEN)
 
-print("Jpriq Yordamchi (.env tizimida) muvaffaqiyatli ishga tushdi...")
-print("Miya holati: Onlayn. Buyruqlarni kutyapti...")
+# Render o'chib qolmasligi uchun yashirin veb-server
+def run_health_server():
+    PORT = int(os.getenv("PORT", 8080))
+    Handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        print(f"Server {PORT}-portda ishlamoqda...")
+        httpd.serve_forever()
+
+Thread(target=run_health_server, daemon=True).start()
+
+print("Jpriq Yordamchi muvaffaqiyatli ishga tushdi...")
 
 # 4. Xabarlarni qabul qilish va AI ga uzatish
 @bot.message_handler(func=lambda message: True)
 def javob_berish(message):
-    # Xavfsizlik tizimi
     if message.chat.id != MY_CHAT_ID:
-        bot.reply_to(message, "❌ TIZIM QULFLANGAN: Siz mening xo'jayinim emassiz!")
+        bot.reply_to(message, "❌ TIZIM QULFLANGAN!")
         return
 
     user_text = message.text
-    print(f"Xo'jayindan xabar keldi: {user_text}")
     
+    # Eskidan qolgan 5 ta xabarni bazadan olish (AI eslab qolishi uchun)
+    past_messages = history_collection.find({"chat_id": MY_CHAT_ID}).sort("_id", -1).limit(5)
+    
+    context = "Siz aqlli Jpriq yordamchisiz. Suhbatdoshning oldingi yozganlari:\n"
+    for msg in reversed(list(past_messages)):
+        context += f"Xo'jayin: {msg['user']}\nSiz: {msg['ai']}\n"
+    context += f"Yangi savol: {user_text}"
+
     try:
-        # AI ga savol yuborish
         response = client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=user_text,
+            contents=context,
         )
-        # AI javobini qaytarish
-        bot.reply_to(message, response.text)
+        ai_answer = response.text
+        
+        # Suhbatni bazaga saqlash
+        history_collection.insert_one({
+            "chat_id": MY_CHAT_ID,
+            "user": user_text,
+            "ai": ai_answer
+        })
+        
+        bot.reply_to(message, ai_answer)
     except Exception as e:
-        bot.reply_to(message, f"Miyada xatolik bo'ldi: {str(e)}")
+        bot.reply_to(message, f"Miyada xatolik: {str(e)}")
 
-# Botni tinimsiz ishlab turishini ta'minlash
 bot.polling(none_stop=True)
