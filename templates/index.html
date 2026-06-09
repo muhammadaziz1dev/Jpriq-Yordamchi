@@ -35,41 +35,42 @@
         </div>
     </div>
 
-    <script>
-        const chatMessages = document.getElementById('chatMessages');
-        const userInput = document.getElementById('userInput');
+   <script>
+    const chatMessages = document.getElementById('chatMessages');
+    const userInput = document.getElementById('userInput');
 
-        function appendMessage(text, isUser) {
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('message', isUser ? 'user-message' : 'ai-message');
-            msgDiv.innerText = text;
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+    function appendMessage(text, isUser) {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message', isUser ? 'user-message' : 'ai-message');
+        msgDiv.innerText = text;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        appendMessage(text, true);
+        userInput.value = '';
+
+        try {
+            // 👇 BIZ O'ZGARTIRGAN ASOSIY QATOR SHU YERDA:
+            const response = await fetch('https://jpriq-yordamchi.onrender.com/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            const data = await response.json();
+            appendMessage(data.reply, false);
+        } catch (error) {
+            appendMessage("Xatolik: Aloqa muvaffaqiyatsiz tugadi.", false);
         }
+    }
 
-        async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            appendMessage(text, true);
-            userInput.value = '';
-
-            try {
-                const response = await fetch('/ask', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text })
-                });
-                const data = await response.json();
-                appendMessage(data.reply, false);
-            } catch (error) {
-                appendMessage("Xatolik: Aloqa muvaffaqiyatsiz tugadi.", false);
-            }
-        }
-
-        function checkEnter(event) {
-            if (event.key === 'Enter') sendMessage();
-        }
-    </script>
+    function checkEnter(event) {
+        if (event.key === 'Enter') sendMessage();
+    }
+</script>
 </body>
 </html>

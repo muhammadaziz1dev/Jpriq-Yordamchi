@@ -3,3 +3,4 @@ google-genai
 python-dotenv
 pymongo
 flask
+flask-cors
