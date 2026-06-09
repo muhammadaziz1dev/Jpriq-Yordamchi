@@ -39,6 +39,10 @@ def check_and_add_command(text):
     if any(k in text_lower for k in ["chrome och", "brauzerni och", "chrome oч"]):
         commands_collection.insert_one({"command": "open_chrome", "status": "pending"})
         return "Xo'p bo'ladi, noutbukda Chrome brauzerini ochish buyrug'ini yubordim. ✅"
+    
+    elif any(k in text_lower for k in ["Menyoqtirgan Musiqa", "my music", "Musiqa qo'y"]):
+        commands_collection.insert_one({"command": "my_music", "status": "pending"})
+        return "Xo'p bo'ladi, noutbukda Chrome brauzerini ochish buyrug'ini yubordim. ✅"
 
     elif any(k in text_lower for k in ["youtube och", "ютуб оч"]):
         commands_collection.insert_one({"command": "open_youtube", "status": "pending"})

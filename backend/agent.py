@@ -23,6 +23,10 @@ def execute_command(cmd):
 
         elif cmd == "open_youtube":
             webbrowser.open("https://youtube.com")
+            return 
+        
+        elif cmd == "my_music":
+            webbrowser.open("https://www.youtube.com/watch?v=DwpNRx2tcK4&list=RDCVCZBgcxHWQ&index=20")
             return True
 
         elif cmd == "open_telegram":
