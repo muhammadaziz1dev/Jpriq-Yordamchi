@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JPRIQ Yordamchi</title>
-    <link rel="stylesheet" href="/static/main.css">
+    <link rel="stylesheet" href="./main.css">
 </head>
 <body>
 
@@ -55,7 +55,7 @@
         userInput.value = '';
 
         try {
-            // 👇 BIZ O'ZGARTIRGAN ASOSIY QATOR SHU YERDA:
+            // Render'dagi backend serveringizga to'g'ridan-to'g'ri so'rov yuborish
             const response = await fetch('https://jpriq-yordamchi.onrender.com/ask', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -64,7 +64,7 @@
             const data = await response.json();
             appendMessage(data.reply, false);
         } catch (error) {
-            appendMessage("Xatolik: Aloqa muvaffaqiyatsiz tugadi.", false);
+            appendMessage("Xatolik: Jpriq serveri bilan aloqa o'rnatib bo'lmadi.", false);
         }
     }
 
