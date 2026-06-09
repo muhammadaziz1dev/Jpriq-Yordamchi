@@ -103,7 +103,7 @@ def get_ai_response(user_text):
         context += f"Yangi savol: {user_text}"
 
         ai_answer = ""
-        for model_name in ['gemini-2.0-flash', 'gemini-1.5-flash']:
+        for model_name in ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash']:
             try:
                 response = client.models.generate_content(
                     model=model_name,
@@ -112,7 +112,7 @@ def get_ai_response(user_text):
                 ai_answer = response.text
                 break
             except Exception as model_err:
-                if '503' in str(model_err) and model_name == 'gemini-2.0-flash':
+                if ('503' in str(model_err) or '429' in str(model_err)) and model_name != 'gemini-1.5-flash':
                     continue
                 raise model_err
 
