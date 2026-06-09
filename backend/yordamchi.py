@@ -40,7 +40,7 @@ def check_and_add_command(text):
         commands_collection.insert_one({"command": "open_chrome", "status": "pending"})
         return "Xo'p bo'ladi, noutbukda Chrome brauzerini ochish buyrug'ini yubordim. ✅"
     
-    elif any(k in text_lower for k in ["menyoqtirgan musiqa", "my music", "musiqa qo'y"]):
+    elif any(k in text_lower for k in ["menyoqtirgan musiqa", "my music", "musiqa qo'y11"]):
         commands_collection.insert_one({"command": "my_music", "status": "pending"})
         return "Xo'p, musiqangizni ochdim! 🎵"
 
