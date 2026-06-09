@@ -2,4 +2,4 @@ pyTelegramBotAPI
 google-genai
 python-dotenv
 pymongo
-dnspython
+flask
