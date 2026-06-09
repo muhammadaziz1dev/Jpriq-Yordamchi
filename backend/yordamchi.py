@@ -102,11 +102,19 @@ def get_ai_response(user_text):
             context += f"Foydalanuvchi: {msg['user']}\nSiz: {msg['ai']}\n"
         context += f"Yangi savol: {user_text}"
 
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=context
-        )
-        ai_answer = response.text
+        ai_answer = ""
+        for model_name in ['gemini-2.0-flash', 'gemini-1.5-flash']:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=context
+                )
+                ai_answer = response.text
+                break
+            except Exception as model_err:
+                if '503' in str(model_err) and model_name == 'gemini-2.0-flash':
+                    continue
+                raise model_err
 
         history_collection.insert_one({
             "chat_id": MY_CHAT_ID,
