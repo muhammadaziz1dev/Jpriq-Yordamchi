@@ -105,7 +105,7 @@ def get_ai_response(user_text):
         context += f"Yangi savol: {user_text}"
 
         ai_answer = ""
-        models_to_try = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash']
+        models_to_try = ['gemini-1.5-flash', 'gemini-2.0-flash-lite', 'gemini-2.0-flash']
         
         # TUZATILDI: Model almashish sikli ancha xavfsiz va toza holatga keltirildi
         for i, model_name in enumerate(models_to_try):
