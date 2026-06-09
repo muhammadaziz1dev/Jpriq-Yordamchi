@@ -73,11 +73,13 @@ def check_and_add_command(text):
         commands_collection.insert_one({"command": "lock_screen", "status": "pending"})
         return "Ekranni qulflash buyrug'i yuborildi. 🔒"
 
-    # Vaqt va tarix
+    # TUZATILDI: O'zbekiston vaqti (UTC+5) to'g'rilandi
     elif any(k in text_lower for k in ["hozir soat necha", "vaqt necha", "soat qancha"]):
         import datetime
-        now = datetime.datetime.now().strftime("%H:%M, %d-%B-%Y")
-        return f"🕐 Hozirgi vaqt: {now}"
+        utc_now = datetime.datetime.now(datetime.timezone.utc)
+        uzb_now = utc_now + datetime.timedelta(hours=5)
+        now_str = uzb_now.strftime("%H:%M, %d-%B-%Y")
+        return f"🕐 Hozirgi vaqt (O'zbekiston): {now_str}"
 
     return None
 
@@ -103,18 +105,23 @@ def get_ai_response(user_text):
         context += f"Yangi savol: {user_text}"
 
         ai_answer = ""
-        for model_name in ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash']:
+        models_to_try = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash']
+        
+        # TUZATILDI: Model almashish sikli ancha xavfsiz va toza holatga keltirildi
+        for i, model_name in enumerate(models_to_try):
             try:
                 response = client.models.generate_content(
                     model=model_name,
                     contents=context
                 )
                 ai_answer = response.text
-                break
+                break  # Javob muvaffaqiyatli olinsa, sikldan chiqamiz
             except Exception as model_err:
-                if ('503' in str(model_err) or '429' in str(model_err)) and model_name != 'gemini-1.5-flash':
-                    continue
-                raise model_err
+                # Agar ro'yxatdagi eng oxirgi model ham xato bersa, xatolikni tashqariga otadi
+                if i == len(models_to_try) - 1:
+                    raise model_err
+                print(f"⚠️ {model_name} xato berdi, zaxira modelga o'tilmoqda...")
+                continue
 
         history_collection.insert_one({
             "chat_id": MY_CHAT_ID,
