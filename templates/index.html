@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPRIQ Yordamchi</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo-section">
+            <div class="logo">Jpriq Yordamchi</div>
+            <div class="subtitle">Noutbuk va masofaviy tizimlarni boshqarish markazi.</div>
+        </div>
+        <div class="status-box">
+            <div class="status-title">● Tizim Faol</div>
+            <div class="status-text">Laptop workstation ulangan</div>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Workspace Terminal</h2>
+            <span class="mode-badge">Laptop Station</span>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai-message">Tizim ishga tushdi. Masofaviy buyruq yoki so'rovingizni kiritishingiz mumkin.</div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="Buyruq matnini kiriting..." onkeypress="checkEnter(event)" autocomplete="off">
+            <button onclick="sendMessage()">Bajarish</button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+
+        function appendMessage(text, isUser) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', isUser ? 'user-message' : 'ai-message');
+            msgDiv.innerText = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            appendMessage(text, true);
+            userInput.value = '';
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await response.json();
+                appendMessage(data.reply, false);
+            } catch (error) {
+                appendMessage("Xatolik: Aloqa muvaffaqiyatsiz tugadi.", false);
+            }
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') sendMessage();
+        }
+    </script>
+</body>
+</html>
